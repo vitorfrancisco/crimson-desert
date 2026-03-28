@@ -1,0 +1,865 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crimson Desert – Item Database</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #06040a;
+      --bg2:         #0c0810;
+      --bg3:         #130f18;
+      --bg4:         #1c1622;
+      --bg5:         #241d2c;
+      --border:      #2e1f2e;
+      --border-hi:   #5c3030;
+      --text:        #c8baa0;
+      --text-hi:     #e8dcc8;
+      --muted:       #5e4e42;
+      --red:         #8b1415;
+      --red-hi:      #c0272a;
+      --red-glow:    rgba(139,20,21,.35);
+      --gold:        #9a7830;
+      --gold-hi:     #c9a84c;
+      --gold-lo:     rgba(201,168,76,.1);
+      --gold-glow:   rgba(201,168,76,.25);
+      --header-h:    60px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Crimson Text', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(100,10,10,.18) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+    }
+    header, aside, main, .grid, .card, .sort-bar { position: relative; z-index: 1; }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: var(--header-h);
+      background: linear-gradient(180deg, #0e0812 0%, #08050c 100%);
+      border-bottom: 1px solid var(--border-hi);
+      box-shadow: 0 2px 24px rgba(139,20,21,.2), 0 1px 0 rgba(201,168,76,.08);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 24px;
+    }
+    header::before, header::after {
+      content: '⚔';
+      font-size: .85rem;
+      color: var(--red);
+      opacity: .4;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    header::before { left: 6px; }
+    header::after  { right: 6px; }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gold-hi);
+      white-space: nowrap;
+      letter-spacing: .06em;
+      text-shadow: 0 0 18px var(--gold-glow);
+    }
+    .logo-icon { width: 28px; height: 28px; filter: drop-shadow(0 0 6px var(--red-glow)); }
+
+    .search-wrap { flex: 1; max-width: 440px; position: relative; }
+    .search-wrap input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      border-radius: 2px;
+      padding: 8px 12px 8px 36px;
+      color: var(--text-hi);
+      font-family: 'Crimson Text', serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-wrap input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px var(--gold-lo), inset 0 0 8px rgba(201,168,76,.04);
+    }
+    .search-icon {
+      position: absolute; left: 11px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted); pointer-events: none;
+    }
+
+    .counter {
+      margin-left: auto;
+      font-family: 'Cinzel', serif;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      color: var(--muted);
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      padding: 4px 14px;
+      border-radius: 2px;
+      background: var(--bg2);
+    }
+    .counter b { color: var(--gold-hi); }
+
+    /* ── Layout ─────────────────────────────────────── */
+    .layout { display: flex; align-items: flex-start; }
+
+    /* ── Sidebar ─────────────────────────────────────── */
+    aside {
+      width: 240px;
+      min-width: 240px;
+      background: linear-gradient(180deg, #0d0910 0%, #09060d 100%);
+      border-right: 1px solid var(--border-hi);
+      padding: 20px 16px;
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+      position: sticky;
+      top: var(--header-h);
+    }
+
+    .sidebar-title {
+      font-family: 'Cinzel', serif;
+      font-size: .62rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--red-hi);
+      text-shadow: 0 0 10px var(--red-glow);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-hi);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-title::before { content: '◆'; font-size: .5rem; }
+
+    .filter-group { margin-bottom: 20px; }
+
+    .filter-label {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-size: .58rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--gold);
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+
+    select {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      border-radius: 2px;
+      padding: 7px 28px 7px 10px;
+      color: var(--text);
+      font-family: 'Crimson Text', serif;
+      font-size: .95rem;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23c9a84c' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color .2s;
+    }
+    select:focus { border-color: var(--gold); outline: none; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-hi), transparent);
+      margin: 16px 0;
+    }
+
+    .range-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .range-row label { font-size: .72rem; color: var(--muted); width: 26px; flex-shrink: 0; }
+    .range-row input[type=range] { flex: 1; accent-color: var(--red-hi); cursor: pointer; height: 3px; }
+    .range-row .rv {
+      font-size: .78rem; color: var(--gold-hi); min-width: 28px;
+      text-align: right; font-weight: 600; font-family: 'Cinzel', serif;
+    }
+
+    .clear-btn {
+      width: 100%; padding: 8px 12px;
+      background: transparent;
+      border: 1px solid var(--border-hi);
+      border-radius: 2px;
+      color: var(--muted);
+      font-family: 'Cinzel', serif;
+      font-size: .62rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 6px;
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+    .clear-btn:hover {
+      border-color: var(--red-hi);
+      color: var(--red-hi);
+      background: rgba(139,20,21,.12);
+      box-shadow: 0 0 10px var(--red-glow);
+    }
+
+    /* ── Main ─────────────────────────────────────── */
+    main { flex: 1; padding: 22px; min-width: 0; }
+
+    /* ── Sort bar ─────────────────────────────────── */
+    .sort-bar {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sort-bar-label {
+      font-family: 'Cinzel', serif;
+      font-size: .6rem; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted); margin-right: 4px;
+    }
+    .sort-btn {
+      padding: 5px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      border-radius: 2px;
+      color: var(--muted);
+      font-family: 'Cinzel', serif;
+      font-size: .6rem;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+      clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    }
+    .sort-btn:hover { border-color: var(--gold); color: var(--text-hi); }
+    .sort-btn.active {
+      border-color: var(--gold-hi);
+      color: var(--gold-hi);
+      background: var(--gold-lo);
+      box-shadow: 0 0 12px var(--gold-glow);
+    }
+
+    /* ── Grid ─────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 14px;
+    }
+
+    /* ── Card ─────────────────────────────────────── */
+    .card {
+      background: linear-gradient(160deg, var(--bg3) 0%, var(--bg2) 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform .25s, border-color .25s, box-shadow .25s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      border-style: solid;
+      border-width: 0 12px 12px 0;
+      border-color: transparent var(--border-hi) transparent transparent;
+      z-index: 2;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: var(--gold);
+      box-shadow: 0 8px 30px rgba(0,0,0,.7), 0 0 20px var(--gold-lo), inset 0 0 24px rgba(0,0,0,.3);
+    }
+    .card:hover::before { border-color: transparent var(--gold) transparent transparent; }
+
+    .card-ribbon { height: 2px; background: var(--muted); }
+    .ribbon-Common    { background: #555; }
+    .ribbon-Uncommon  { background: #3d7a3d; }
+    .ribbon-Rare      { background: #2a5ea8; }
+    .ribbon-Epic      { background: #7a2fa8; }
+    .ribbon-Heroic    { background: #9a5a20; }
+    .ribbon-Legendary { background: linear-gradient(90deg, #7a5a10, #c9a84c, #7a5a10); }
+    .ribbon-Mythical  { background: linear-gradient(90deg, var(--red), #c0272a, var(--red)); box-shadow: 0 0 8px var(--red-glow); }
+
+    .card-img {
+      background: radial-gradient(ellipse at 50% 40%, var(--bg4) 0%, var(--bg2) 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; aspect-ratio: 1; position: relative;
+    }
+    .card-img img {
+      width: 80px; height: 80px; object-fit: contain;
+      opacity: 0; transition: opacity .35s, filter .35s;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.6));
+    }
+    .card-img img.loaded { opacity: 1; }
+    .card:hover .card-img img { filter: drop-shadow(0 4px 14px var(--gold-glow)); }
+
+    .card-body { padding: 11px 13px 13px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+
+    .card-name {
+      font-family: 'Cinzel', serif;
+      font-size: .78rem; font-weight: 600; line-height: 1.4;
+      color: var(--text-hi); letter-spacing: .02em;
+    }
+    .card:hover .card-name { color: var(--gold-hi); }
+
+    .card-sub { font-size: .75rem; color: var(--muted); margin-bottom: 4px; text-transform: capitalize; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 2px;
+      font-family: 'Cinzel', serif;
+      font-size: .56rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      align-self: flex-start; margin-bottom: 5px;
+      clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+    }
+    .badge-Common    { background: rgba(100,100,100,.18); color: #8a8a8a; border: 1px solid rgba(100,100,100,.3); }
+    .badge-Uncommon  { background: rgba(61,122,61,.18);   color: #5aaa5a; border: 1px solid rgba(61,122,61,.35); }
+    .badge-Rare      { background: rgba(42,94,168,.18);   color: #5a9ae0; border: 1px solid rgba(42,94,168,.35); }
+    .badge-Epic      { background: rgba(122,47,168,.2);   color: #c080e8; border: 1px solid rgba(122,47,168,.4); }
+    .badge-Heroic    { background: rgba(154,90,32,.2);    color: #dda060; border: 1px solid rgba(154,90,32,.4); }
+    .badge-Legendary { background: rgba(154,120,48,.18);  color: var(--gold-hi); border: 1px solid rgba(201,168,76,.4); box-shadow: 0 0 8px var(--gold-lo); }
+    .badge-Mythical  { background: rgba(139,20,21,.2);    color: #e85050; border: 1px solid rgba(192,39,42,.5); box-shadow: 0 0 8px var(--red-glow); }
+
+    .stats { display: flex; gap: 5px; margin-top: 4px; }
+    .stat {
+      flex: 1; background: rgba(0,0,0,.3);
+      border: 1px solid var(--border); border-radius: 2px;
+      padding: 5px 6px; text-align: center; transition: border-color .2s;
+    }
+    .stat.lit { border-color: rgba(201,168,76,.3); }
+    .stat-lbl {
+      font-family: 'Cinzel', serif;
+      font-size: .5rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+    }
+    .stat-val {
+      font-family: 'Cinzel', serif;
+      font-size: .86rem; font-weight: 700; margin-top: 2px; color: var(--muted);
+    }
+    .stat.lit .stat-val { color: var(--gold-hi); text-shadow: 0 0 8px var(--gold-glow); }
+
+    /* ── Skeleton ─────────────────────────────────── */
+    .skel {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .skel-img { background: var(--bg3); aspect-ratio: 1; }
+    .skel-body { padding: 12px; display: flex; flex-direction: column; gap: 9px; }
+    .skel-line { height: 10px; border-radius: 2px; background: var(--bg4); }
+    .skel-line.w60 { width: 60%; }
+    .skel-line.w40 { width: 40%; height: 8px; }
+    .skel-img, .skel-line { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: .3; }
+      50%       { opacity: .7; }
+    }
+
+    /* ── Empty ───────────────────────────────────── */
+    .empty {
+      grid-column: 1 / -1; display: flex; flex-direction: column;
+      align-items: center; padding: 80px 20px; color: var(--muted); gap: 12px;
+    }
+    .empty-icon { font-size: 3rem; filter: grayscale(1) opacity(.4); }
+    .empty-title {
+      font-family: 'Cinzel', serif; font-size: 1rem;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--text);
+    }
+    .empty p { font-size: .9rem; }
+
+    /* ── Scrollbar ───────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--red-hi); }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 720px) { aside { display: none; } }
+    @media (max-width: 480px) { header { flex-wrap: wrap; } .counter { margin-left: 0; } }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2L8 8H2l5 4-2 7 7-4 7 4-2-7 5-4h-6z" stroke="#c9a84c" fill="rgba(139,20,21,.3)"/>
+    </svg>
+    Crimson Desert
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="search" placeholder="Buscar item por nome…" autocomplete="off" />
+  </div>
+  <div class="counter"><b id="count">0</b> itens encontrados</div>
+</header>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-title">Filtros</div>
+
+    <div class="filter-group">
+      <label class="filter-label">Categoria</label>
+      <select id="f-cat"><option value="">Todas</option></select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Subcategoria</label>
+      <select id="f-subcat"><option value="">Todas</option></select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Raridade</label>
+      <select id="f-rar">
+        <option value="">Todas</option>
+        <option>Common</option>
+        <option>Uncommon</option>
+        <option>Rare</option>
+        <option>Epic</option>
+        <option>Heroic</option>
+        <option>Legendary</option>
+        <option>Mythical</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Tipo</label>
+      <select id="f-type"><option value="">Todos</option></select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="filter-group">
+      <label class="filter-label">Ataque Base</label>
+      <div class="range-row">
+        <label>Min</label>
+        <input type="range" id="atk-min" min="0" max="100" value="0" />
+        <span class="rv" id="atk-min-v">0</span>
+      </div>
+      <div class="range-row">
+        <label>Max</label>
+        <input type="range" id="atk-max" min="0" max="100" value="100" />
+        <span class="rv" id="atk-max-v">100</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Defesa Base</label>
+      <div class="range-row">
+        <label>Min</label>
+        <input type="range" id="def-min" min="0" max="100" value="0" />
+        <span class="rv" id="def-min-v">0</span>
+      </div>
+      <div class="range-row">
+        <label>Max</label>
+        <input type="range" id="def-max" min="0" max="100" value="100" />
+        <span class="rv" id="def-max-v">100</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="filter-group">
+      <label class="filter-label">Ataque +10</label>
+      <div class="range-row">
+        <label>Min</label>
+        <input type="range" id="atkr-min" min="0" max="100" value="0" />
+        <span class="rv" id="atkr-min-v">0</span>
+      </div>
+      <div class="range-row">
+        <label>Max</label>
+        <input type="range" id="atkr-max" min="0" max="100" value="100" />
+        <span class="rv" id="atkr-max-v">100</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Defesa +10</label>
+      <div class="range-row">
+        <label>Min</label>
+        <input type="range" id="defr-min" min="0" max="100" value="0" />
+        <span class="rv" id="defr-min-v">0</span>
+      </div>
+      <div class="range-row">
+        <label>Max</label>
+        <input type="range" id="defr-max" min="0" max="100" value="100" />
+        <span class="rv" id="defr-max-v">100</span>
+      </div>
+    </div>
+
+    <button class="clear-btn" id="clear">✕ Limpar filtros</button>
+  </aside>
+
+  <!-- Main -->
+  <main>
+    <div class="sort-bar">
+      <span class="sort-bar-label">Ordenar por:</span>
+      <button class="sort-btn" data-sort="name">Nome A→Z</button>
+      <button class="sort-btn" data-sort="atk-asc">Ataque ↑</button>
+      <button class="sort-btn" data-sort="atk-desc">Ataque ↓</button>
+      <button class="sort-btn" data-sort="def-asc">Defesa ↑</button>
+      <button class="sort-btn" data-sort="def-desc">Defesa ↓</button>
+      <button class="sort-btn" data-sort="atkr-asc">ATK+10 ↑</button>
+      <button class="sort-btn" data-sort="atkr-desc">ATK+10 ↓</button>
+      <button class="sort-btn" data-sort="defr-asc">DEF+10 ↑</button>
+      <button class="sort-btn" data-sort="defr-desc">DEF+10 ↓</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+</div>
+
+<script src="./database.js"></script>
+<script>
+  /* ── State ──────────────────────────────────────── */
+  let items   = [];
+  let sort    = null;
+  let atkCeil = 0, defCeil = 0, atkRefCeil = 0, defRefCeil = 0;
+  const subcatMap = {};
+
+  /* ── Labels ─────────────────────────────────────── */
+  const SUBCAT_LABELS = {
+    'helm':      'Headgear',
+    'upperbody': 'Armor',
+    'hand':      'Gloves',
+    'foot':      'Footgear',
+    'back-pack': 'Back Pack',
+    'cloak':     'Cloak',
+    'glass':     'Glasses',
+    'mask':      'Mask',
+  };
+
+  /* ── Elements ───────────────────────────────────── */
+  const grid     = document.getElementById('grid');
+  const searchEl = document.getElementById('search');
+  const fCat     = document.getElementById('f-cat');
+  const fSubcat  = document.getElementById('f-subcat');
+  const fRar     = document.getElementById('f-rar');
+  const fType    = document.getElementById('f-type');
+  const atkMin   = document.getElementById('atk-min');
+  const atkMax   = document.getElementById('atk-max');
+  const defMin   = document.getElementById('def-min');
+  const defMax   = document.getElementById('def-max');
+  const atkrMin  = document.getElementById('atkr-min');
+  const atkrMax  = document.getElementById('atkr-max');
+  const defrMin  = document.getElementById('defr-min');
+  const defrMax  = document.getElementById('defr-max');
+  const atkMinV  = document.getElementById('atk-min-v');
+  const atkMaxV  = document.getElementById('atk-max-v');
+  const defMinV  = document.getElementById('def-min-v');
+  const defMaxV  = document.getElementById('def-max-v');
+  const atkrMinV = document.getElementById('atkr-min-v');
+  const atkrMaxV = document.getElementById('atkr-max-v');
+  const defrMinV = document.getElementById('defr-min-v');
+  const defrMaxV = document.getElementById('defr-max-v');
+  const countEl  = document.getElementById('count');
+
+  /* ── Stat helpers ───────────────────────────────── */
+  function getStatBase(item, name) {
+    if (!item.stats) return null;
+    const s = item.stats.find(s => s.name === name);
+    return s ? s.base : null;
+  }
+  const atkBase = item => getStatBase(item, 'Attack');
+  const defBase = item => getStatBase(item, 'Defense');
+
+  function getRefStat(item, name) {
+    if (!item.refinement || !item.refinement.length) return null;
+    const last = item.refinement[item.refinement.length - 1];
+    const s = last.stats.find(s => s.name === name);
+    return (s && typeof s.value === 'number') ? s.value : null;
+  }
+  const atkRef = item => getRefStat(item, 'Attack');
+  const defRef = item => getRefStat(item, 'Defense');
+
+  function fmtSubcat(s) {
+    if (SUBCAT_LABELS[s]) return SUBCAT_LABELS[s];
+    return s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  /* ── Subcategory dropdown ───────────────────────── */
+  function populateSubcat(cat) {
+    fSubcat.innerHTML = '<option value="">Todas</option>';
+    const list = (cat && subcatMap[cat])
+      ? subcatMap[cat]
+      : Object.values(subcatMap).reduce((acc, arr) => {
+          arr.forEach(v => { if (!acc.includes(v)) acc.push(v); });
+          return acc;
+        }, []).sort();
+    list.forEach(sc => {
+      const opt = document.createElement('option');
+      opt.value = sc;
+      opt.textContent = fmtSubcat(sc);
+      fSubcat.appendChild(opt);
+    });
+  }
+
+  /* ── Skeleton ───────────────────────────────────── */
+  function showSkeletons(n = 24) {
+    grid.innerHTML = Array.from({ length: n }, () => `
+      <div class="skel">
+        <div class="skel-img"></div>
+        <div class="skel-body">
+          <div class="skel-line"></div>
+          <div class="skel-line w60"></div>
+          <div class="skel-line w40"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  /* ── Load ───────────────────────────────────────── */
+  function load() {
+    showSkeletons();
+    if (typeof DATABASE === 'undefined') {
+      grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">database.js não encontrado</div><p>Execute node convert.js para gerar o arquivo.</p></div>`;
+      return;
+    }
+    items = DATABASE;
+
+    // Build subcatMap: category -> sorted array of unique subcategories
+    items.forEach(i => {
+      if (!i.category) return;
+      if (!subcatMap[i.category]) subcatMap[i.category] = [];
+      if (i.subcategory && !subcatMap[i.category].includes(i.subcategory)) {
+        subcatMap[i.category].push(i.subcategory);
+      }
+    });
+    for (const k in subcatMap) subcatMap[k].sort();
+
+    // Populate category dropdown
+    [...new Set(items.map(i => i.category).filter(Boolean))].sort().forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = fmtSubcat(c);
+      fCat.appendChild(opt);
+    });
+
+    // Populate type dropdown
+    [...new Set(items.map(i => i.type).filter(Boolean))].sort().forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      fType.appendChild(opt);
+    });
+
+    // Set slider ranges
+    atkCeil    = Math.max(0, ...items.map(i => atkBase(i) ?? 0));
+    defCeil    = Math.max(0, ...items.map(i => defBase(i) ?? 0));
+    atkRefCeil = Math.max(0, ...items.map(i => atkRef(i)  ?? 0));
+    defRefCeil = Math.max(0, ...items.map(i => defRef(i)  ?? 0));
+    [atkMin, atkMax].forEach(el => el.max = atkCeil);
+    [defMin, defMax].forEach(el => el.max = defCeil);
+    [atkrMin, atkrMax].forEach(el => el.max = atkRefCeil);
+    [defrMin, defrMax].forEach(el => el.max = defRefCeil);
+    atkMax.value  = atkCeil;    atkMaxV.textContent  = atkCeil;
+    defMax.value  = defCeil;    defMaxV.textContent  = defCeil;
+    atkrMax.value = atkRefCeil; atkrMaxV.textContent = atkRefCeil;
+    defrMax.value = defRefCeil; defrMaxV.textContent = defRefCeil;
+
+    populateSubcat('');
+    render();
+  }
+
+  /* ── Filter ─────────────────────────────────────── */
+  function filtered() {
+    const q      = searchEl.value.trim().toLowerCase();
+    const cat    = fCat.value;
+    const subcat = fSubcat.value;
+    const rar    = fRar.value;
+    const typ    = fType.value;
+    const amin  = +atkMin.value,  amax  = +atkMax.value;
+    const dmin  = +defMin.value,  dmax  = +defMax.value;
+    const armin = +atkrMin.value, armax = +atkrMax.value;
+    const drmin = +defrMin.value, drmax = +defrMax.value;
+    const atkSlid  = amin  > 0 || amax  < atkCeil;
+    const defSlid  = dmin  > 0 || dmax  < defCeil;
+    const atkrSlid = armin > 0 || armax < atkRefCeil;
+    const defrSlid = drmin > 0 || drmax < defRefCeil;
+
+    return items.filter(item => {
+      if (q      && !item.name.toLowerCase().includes(q)) return false;
+      if (cat    && item.category    !== cat)    return false;
+      if (subcat && item.subcategory !== subcat) return false;
+      if (rar    && item.rarity      !== rar)    return false;
+      if (typ    && item.type        !== typ)    return false;
+      if (atkSlid)  { const v = atkBase(item); if (v === null || v < amin  || v > amax)  return false; }
+      if (defSlid)  { const v = defBase(item); if (v === null || v < dmin  || v > dmax)  return false; }
+      if (atkrSlid) { const v = atkRef(item);  if (v === null || v < armin || v > armax) return false; }
+      if (defrSlid) { const v = defRef(item);  if (v === null || v < drmin || v > drmax) return false; }
+      return true;
+    });
+  }
+
+  /* ── Sort ───────────────────────────────────────── */
+  function sorted(arr) {
+    if (!sort) return arr;
+    const a = [...arr];
+    const cmp = {
+      'name':      (a,b) => a.name.localeCompare(b.name),
+      'atk-asc':   (a,b) => (atkBase(a) ?? -1) - (atkBase(b) ?? -1),
+      'atk-desc':  (a,b) => (atkBase(b) ?? -1) - (atkBase(a) ?? -1),
+      'def-asc':   (a,b) => (defBase(a) ?? -1) - (defBase(b) ?? -1),
+      'def-desc':  (a,b) => (defBase(b) ?? -1) - (defBase(a) ?? -1),
+      'atkr-asc':  (a,b) => (atkRef(a)  ?? -1) - (atkRef(b)  ?? -1),
+      'atkr-desc': (a,b) => (atkRef(b)  ?? -1) - (atkRef(a)  ?? -1),
+      'defr-asc':  (a,b) => (defRef(a)  ?? -1) - (defRef(b)  ?? -1),
+      'defr-desc': (a,b) => (defRef(b)  ?? -1) - (defRef(a)  ?? -1),
+    };
+    return a.sort(cmp[sort]);
+  }
+
+  /* ── Render ─────────────────────────────────────── */
+  function escHTML(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escAttr(s) { return escHTML(s || ''); }
+  function fmt(v) { return (v !== null && v !== undefined) ? v : '—'; }
+  function lit(v) { return (v !== null && v !== undefined) ? ' lit' : ''; }
+
+  function cardHTML(item) {
+    const atk  = fmt(atkBase(item));
+    const def  = fmt(defBase(item));
+    const ar   = atkRef(item);
+    const dr   = defRef(item);
+    const rar  = item.rarity || '';
+    const refRow = (ar !== null || dr !== null) ? `
+          <div class="stats">
+            <div class="stat${lit(ar)}">
+              <div class="stat-lbl">ATK +10</div>
+              <div class="stat-val">${fmt(ar)}</div>
+            </div>
+            <div class="stat${lit(dr)}">
+              <div class="stat-lbl">DEF +10</div>
+              <div class="stat-val">${fmt(dr)}</div>
+            </div>
+          </div>` : '';
+    return `
+      <div class="card">
+        <div class="card-ribbon ribbon-${escAttr(rar)}"></div>
+        <div class="card-img">
+          <img src="${escAttr(item.image || '')}" alt="${escAttr(item.name)}"
+               loading="lazy" decoding="async"
+               onload="this.classList.add('loaded')"
+               onerror="this.style.opacity='.1'" />
+        </div>
+        <div class="card-body">
+          <div class="card-name">${escHTML(item.name)}</div>
+          <div class="card-sub">${escHTML(item.subcategory || item.type || '')}</div>
+          <span class="badge badge-${escAttr(rar)}">${escHTML(rar)}</span>
+          <div class="stats">
+            <div class="stat${lit(atkBase(item))}">
+              <div class="stat-lbl">ATK</div>
+              <div class="stat-val">${atk}</div>
+            </div>
+            <div class="stat${lit(defBase(item))}">
+              <div class="stat-lbl">DEF</div>
+              <div class="stat-val">${def}</div>
+            </div>
+          </div>
+          ${refRow}
+        </div>
+      </div>`;
+  }
+
+  function render() {
+    const list = sorted(filtered());
+    countEl.textContent = list.length;
+    if (list.length === 0) {
+      grid.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🗡️</div>
+          <div class="empty-title">Nenhum item encontrado</div>
+          <p>Tente ajustar os filtros ou a busca.</p>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = list.map(cardHTML).join('');
+  }
+
+  /* ── Listeners ──────────────────────────────────── */
+  searchEl.addEventListener('input', render);
+  fRar.addEventListener('change', render);
+  fType.addEventListener('change', render);
+  fSubcat.addEventListener('change', render);
+
+  fCat.addEventListener('change', () => {
+    fSubcat.value = '';
+    populateSubcat(fCat.value);
+    render();
+  });
+
+  function syncSliders() {
+    atkMinV.textContent  = atkMin.value;
+    atkMaxV.textContent  = atkMax.value;
+    defMinV.textContent  = defMin.value;
+    defMaxV.textContent  = defMax.value;
+    atkrMinV.textContent = atkrMin.value;
+    atkrMaxV.textContent = atkrMax.value;
+    defrMinV.textContent = defrMin.value;
+    defrMaxV.textContent = defrMax.value;
+    render();
+  }
+  [atkMin, atkMax, defMin, defMax, atkrMin, atkrMax, defrMin, defrMax].forEach(el => el.addEventListener('input', syncSliders));
+
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const s = btn.dataset.sort;
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      if (sort === s) { sort = null; } else { sort = s; btn.classList.add('active'); }
+      render();
+    });
+  });
+
+  document.getElementById('clear').addEventListener('click', () => {
+    searchEl.value = '';
+    fCat.value = ''; fSubcat.value = ''; fRar.value = ''; fType.value = '';
+    populateSubcat('');
+    atkMin.value  = 0; atkMax.value  = atkCeil;
+    defMin.value  = 0; defMax.value  = defCeil;
+    atkrMin.value = 0; atkrMax.value = atkRefCeil;
+    defrMin.value = 0; defrMax.value = defRefCeil;
+    syncSliders();
+    sort = null;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    render();
+  });
+
+  /* ── Boot ───────────────────────────────────────── */
+  load();
+</script>
+</body>
+</html>

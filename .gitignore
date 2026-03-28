@@ -1,0 +1,6 @@
+node_modules/
+database.json
+scraper-progress.json
+items-urls.json
+page-rendered.html
+page-sample.html
