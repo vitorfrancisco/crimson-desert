@@ -369,6 +369,20 @@
     }
     .stat.lit .stat-val { color: var(--gold-hi); text-shadow: 0 0 8px var(--gold-glow); }
 
+    /* ── Characteristics ──────────────────────────── */
+    .char-list {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px;
+    }
+    .char-tag {
+      font-family: 'Cinzel', serif;
+      font-size: .52rem; letter-spacing: .06em;
+      padding: 2px 6px; border-radius: 2px;
+      background: rgba(201,168,76,.07);
+      border: 1px solid rgba(201,168,76,.2);
+      color: var(--gold);
+      clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 3px, 100% 100%, 3px 100%, 0 calc(100% - 3px));
+    }
+
     /* ── Skeleton ─────────────────────────────────── */
     .skel {
       background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
@@ -767,6 +781,11 @@
               <div class="stat-val">${fmt(dr)}</div>
             </div>
           </div>` : '';
+    const chars = (item.stats || []).filter(s => s.base === null);
+    const charRow = chars.length ? `
+          <div class="char-list">
+            ${chars.map(s => `<span class="char-tag">${escHTML(s.name)}</span>`).join('')}
+          </div>` : '';
     return `
       <div class="card">
         <div class="card-ribbon ribbon-${escAttr(rar)}"></div>
@@ -791,6 +810,7 @@
             </div>
           </div>
           ${refRow}
+          ${charRow}
         </div>
       </div>`;
   }
